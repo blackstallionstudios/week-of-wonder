@@ -1,0 +1,138 @@
+/*
+ * Riso Zine tokens.
+ * Paper + one "key" ink (a deep blue-black) + eight spot inks named after
+ * real risograph drums. Dark mode swaps to black stock with fluoro inks.
+ */
+
+:root {
+  color-scheme: light;
+
+  --paper: #f4efe4;
+  --paper-deep: #e9e1cf;
+  --card: #fbf8f1;
+  --key: #1e1b2e; /* the "black" drum */
+  --key-soft: #4a4558;
+  --muted: #7a7385;
+  --rule: rgb(30 27 46 / 0.14);
+  --rule-strong: rgb(30 27 46 / 0.32);
+  --scrim: rgb(30 27 46 / 0.42);
+  --grain-opacity: 0.11;
+  --grain-blend: multiply;
+  --overprint: multiply;
+
+  --ink-pink: #ff48b0;
+  --ink-red: #f15060;
+  --ink-orange: #ff6c2f;
+  --ink-sunflower: #ffb511;
+  --ink-green: #00a95c;
+  --ink-teal: #00838a;
+  --ink-blue: #3d5588;
+  --ink-violet: #765ba7;
+  --ink-plain: #b9b2a3;
+
+  --on-pink: #1e1b2e;
+  --on-red: #1e1b2e;
+  --on-orange: #1e1b2e;
+  --on-sunflower: #1e1b2e;
+  --on-green: #1e1b2e;
+  --on-teal: #fbf8f1;
+  --on-blue: #fbf8f1;
+  --on-violet: #fbf8f1;
+  --on-plain: #1e1b2e;
+
+  /* Pane accents */
+  --week: var(--ink-pink);
+  --on-week: var(--on-pink);
+  --someday: var(--ink-blue);
+  --on-someday: var(--on-blue);
+
+  --font-display: 'Bricolage Grotesque Variable', 'Arial Narrow', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shift: 3px; /* misregistration offset */
+  --ease-out: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --vvh: 100dvh;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #15131c;
+    --paper-deep: #0e0d13;
+    --card: #1f1c29;
+    --key: #f3eee1;
+    --key-soft: #c9c2d6;
+    --muted: #8f88a0;
+    --rule: rgb(243 238 225 / 0.12);
+    --rule-strong: rgb(243 238 225 / 0.28);
+    --scrim: rgb(5 4 9 / 0.62);
+    --grain-opacity: 0.07;
+    --grain-blend: screen;
+    --overprint: screen;
+
+    --ink-pink: #ff5cbd;
+    --ink-red: #ff6673;
+    --ink-orange: #ff8148;
+    --ink-sunflower: #ffc53a;
+    --ink-green: #2bd07f;
+    --ink-teal: #22b8c0;
+    --ink-blue: #7b93d6;
+    --ink-violet: #a68be0;
+    --ink-plain: #5d576b;
+
+    --on-pink: #15131c;
+    --on-red: #15131c;
+    --on-orange: #15131c;
+    --on-sunflower: #15131c;
+    --on-green: #15131c;
+    --on-teal: #15131c;
+    --on-blue: #15131c;
+    --on-violet: #15131c;
+    --on-plain: #f3eee1;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #15131c;
+  --paper-deep: #0e0d13;
+  --card: #1f1c29;
+  --key: #f3eee1;
+  --key-soft: #c9c2d6;
+  --muted: #8f88a0;
+  --rule: rgb(243 238 225 / 0.12);
+  --rule-strong: rgb(243 238 225 / 0.28);
+  --scrim: rgb(5 4 9 / 0.62);
+  --grain-opacity: 0.07;
+  --grain-blend: screen;
+  --overprint: screen;
+
+  --ink-pink: #ff5cbd;
+  --ink-red: #ff6673;
+  --ink-orange: #ff8148;
+  --ink-sunflower: #ffc53a;
+  --ink-green: #2bd07f;
+  --ink-teal: #22b8c0;
+  --ink-blue: #7b93d6;
+  --ink-violet: #a68be0;
+  --ink-plain: #5d576b;
+
+  --on-pink: #15131c;
+  --on-red: #15131c;
+  --on-orange: #15131c;
+  --on-sunflower: #15131c;
+  --on-green: #15131c;
+  --on-teal: #15131c;
+  --on-blue: #15131c;
+  --on-violet: #15131c;
+  --on-plain: #f3eee1;
+}
