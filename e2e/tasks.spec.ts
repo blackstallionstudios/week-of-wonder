@@ -17,6 +17,17 @@ test.describe('first run', () => {
 test.describe('tasks', () => {
   test.beforeEach(async ({ page }) => openBlank(page))
 
+  test('nudges iPhone users to install, once', async ({ page, browserName }) => {
+    test.skip(browserName !== 'webkit', 'The tip only appears in iOS Safari')
+    const tip = page.getByRole('complementary', { name: 'Install tip' })
+    await expect(tip).toContainText('Add to Home Screen')
+    await tip.getByRole('button', { name: 'Dismiss install tip' }).click()
+    await expect(tip).toBeHidden()
+    await page.reload()
+    await expect(page.getByRole('heading', { name: 'This Week' })).toBeVisible()
+    await expect(tip).toBeHidden()
+  })
+
   test('shows friendly empty states', async ({ page }) => {
     await expect(page.getByText('Nothing on the press.')).toBeVisible()
     await gotoPane(page, 'Someday')
@@ -69,6 +80,7 @@ test.describe('tasks', () => {
     // Enter inside a subtask inserts a new one right after it
     await sheet.getByTestId('subtask').first().getByLabel('Subtask').press('Enter')
     await expect(sheet.getByTestId('subtask')).toHaveCount(3)
+    await expect(sheet.getByTestId('subtask').nth(1).getByLabel('Subtask')).toBeFocused()
     await page.keyboard.type('Butter')
     await expect(sheet.getByTestId('subtask').nth(1).getByLabel('Subtask')).toHaveValue('Butter')
 
@@ -183,8 +195,43 @@ test.describe('tasks', () => {
     }
     await page.mouse.up()
     await expect(tickets(page, 'week')).toHaveText([/B/, /C/, /A/])
+    // The drop must not also count as a tap that opens the ticket.
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.reload()
     await expect(tickets(page, 'week')).toHaveText([/B/, /C/, /A/])
+  })
+
+  test('real touch long-press drag reorders tickets', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Raw touch events are driven through the Chrome DevTools Protocol')
+    await addTask(page, 'C')
+    await addTask(page, 'B')
+    await addTask(page, 'A')
+    const first = await tickets(page, 'week').nth(0).locator('.ticket__title').boundingBox()
+    const last = await tickets(page, 'week').nth(2).boundingBox()
+    if (!first || !last) throw new Error('no boxes')
+    const cdp = await page.context().newCDPSession(page)
+    const x = first.x + 20
+    const y0 = first.y + first.height / 2
+    const y1 = last.y + last.height - 4
+    const touch = (type: string, y?: number) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: y === undefined ? [] : [{ x, y }] })
+    await touch('touchStart', y0)
+    await page.waitForTimeout(450) // long-press
+    for (let i = 1; i <= 14; i++) {
+      await touch('touchMove', y0 + ((y1 - y0) * i) / 14)
+      await page.waitForTimeout(16)
+    }
+    await touch('touchEnd')
+    await expect(tickets(page, 'week')).toHaveText([/B/, /C/, /A/])
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+  })
+
+  test('toast actions are clickable while a sheet is open', async ({ page }) => {
+    await addTask(page, 'Wander off')
+    await tickets(page, 'week').first().getByRole('button', { name: /Open/ }).click()
+    await page.getByRole('button', { name: 'Move to Someday' }).click()
+    await page.getByRole('button', { name: 'Go' }).click()
+    await expect(page.getByRole('tab', { name: /Someday/ })).toHaveAttribute('aria-selected', 'true')
   })
 
   test('swiping the pager switches panes', async ({ page }) => {

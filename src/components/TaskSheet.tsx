@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { completeTask, deleteWithUndo, findLinks, moveWithToast, prettyHost } from '../lib/actions'
 import { inkName, inkOnVar, inkVar } from '../lib/inks'
 import type { Task } from '../lib/types'
@@ -30,11 +30,17 @@ export function TaskSheet() {
 function TaskDetail({ task }: { task: Task }) {
   const { updateTask, duplicateTask } = useStore.getState()
   const [title, setTitle] = useState(task.title)
+  const root = useRef<HTMLElement>(null)
+  // Switching tickets in place (e.g. Duplicate) starts at the top of the sheet.
+  useEffect(() => {
+    root.current?.closest('.sheet__panel')?.scrollTo({ top: 0 })
+  }, [])
   const links = findLinks(task.notes)
   const other = task.pane === 'week' ? 'someday' : 'week'
 
   return (
     <article
+      ref={root}
       className={`detail ${task.done ? 'is-done' : ''}`}
       style={{ '--ink': inkVar(task.ink), '--on-ink': inkOnVar(task.ink) } as CSSProperties}
     >

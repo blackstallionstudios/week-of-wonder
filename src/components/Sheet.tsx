@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type PointerEvent as RPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type PointerEvent as RPointerEvent } from 'react'
 
 interface SheetProps {
   open: boolean
@@ -27,15 +27,19 @@ export function Sheet({ open, onClose, label, children, className = '', full = f
 
   if (open && !mounted) setMounted(true)
 
-  useEffect(() => {
+  // Layout effect: showModal() + focus must run synchronously in the tap.
+  useLayoutEffect(() => {
     const d = ref.current
     if (!d) return
     if (open) {
       if (!d.open) {
         d.showModal()
-        // Focus the panel itself rather than the first control, so opening
-        // a sheet doesn't paint a focus ring or pop the keyboard.
-        d.querySelector<HTMLElement>('.sheet__panel')?.focus({ preventScroll: true })
+        // Focus an explicit [data-autofocus] control if there is one; it must
+        // happen synchronously within the tap for iOS to raise the keyboard.
+        // Otherwise focus the panel itself, so opening a sheet doesn't paint a
+        // focus ring on the first control.
+        const target = d.querySelector<HTMLElement>('[data-autofocus]') ?? d.querySelector<HTMLElement>('.sheet__panel')
+        target?.focus({ preventScroll: true })
       }
       return
     }

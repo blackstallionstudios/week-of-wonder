@@ -1,54 +1,36 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useUI } from '../store/useUI'
 
 /**
- * Toasts live in a manual popover so they render in the top layer, above any
- * open <dialog> sheet. Re-showing moves them above the newest dialog.
+ * Everything outside an open modal <dialog> is inert, so toasts are portalled
+ * into the topmost open dialog (or the body when none is open). That keeps
+ * "Undo" and friends visible *and* tappable above sheets.
  */
-function useTopLayer(ref: RefObject<HTMLElement | null>, visible: boolean, dep: unknown) {
+function useToastHost(): HTMLElement | null {
+  const [host, setHost] = useState<HTMLElement | null>(null)
   useEffect(() => {
-    const el = ref.current
-    if (!el || !('showPopover' in el)) return
-    try {
-      if (el.matches(':popover-open')) el.hidePopover()
-      if (visible) el.showPopover()
-    } catch {
-      /* popover unsupported or element detached */
+    const pick = () => {
+      const open = [...document.querySelectorAll<HTMLDialogElement>('dialog[open]')]
+      setHost(open[open.length - 1] ?? document.body)
     }
-  }, [ref, visible, dep])
+    pick()
+    const mo = new MutationObserver(pick)
+    mo.observe(document.body, { subtree: true, childList: true, attributeFilter: ['open'] })
+    return () => mo.disconnect()
+  }, [])
+  return host
+}
+
+function ToastLayer({ children }: { children: ReactNode }) {
+  const host = useToastHost()
+  return host ? createPortal(<div className="toasts">{children}</div>, host) : null
 }
 
 export function Toasts() {
   const toasts = useUI((s) => s.toasts)
-  const sheet = useUI((s) => s.sheet)
   const dismiss = useUI((s) => s.dismissToast)
-  const ref = useRef<HTMLDivElement>(null)
-  useTopLayer(ref, toasts.length > 0, `${toasts[0]?.id}-${sheet?.kind}`)
-  return (
-    <div ref={ref} className="toasts" role="status" aria-live="polite" popover="manual">
-      {toasts.map((t) => (
-        <div key={t.id} className={`toast ${t.tone === 'ink' ? 'toast--ink' : ''}`}>
-          <span>{t.message}</span>
-          {t.action && (
-            <button
-              type="button"
-              className="toast__action"
-              onClick={() => {
-                t.action!.run()
-                dismiss(t.id)
-              }}
-            >
-              {t.action.label}
-            </button>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export function UpdatePrompt() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -58,25 +40,39 @@ export function UpdatePrompt() {
       if (reg) setInterval(() => void reg.update(), 60 * 60 * 1000)
     },
   })
-  return <UpdateBanner show={needRefresh} onReload={() => void updateServiceWorker(true)} onLater={() => setNeedRefresh(false)} />
-}
 
-function UpdateBanner({ show, onReload, onLater }: { show: boolean; onReload(): void; onLater(): void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useTopLayer(ref, show, show)
   return (
-    <div ref={ref} className="toasts" popover="manual">
-      {show && (
+    <ToastLayer>
+      <div role="status" aria-live="polite" className="toasts__live">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast ${t.tone === 'ink' ? 'toast--ink' : ''}`}>
+            <span>{t.message}</span>
+            {t.action && (
+              <button
+                type="button"
+                className="toast__action"
+                onClick={() => {
+                  t.action!.run()
+                  dismiss(t.id)
+                }}
+              >
+                {t.action.label}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {needRefresh && (
         <div className="update" role="alert">
           <span>A new edition is ready.</span>
-          <button type="button" className="toast__action" onClick={onReload}>
+          <button type="button" className="toast__action" onClick={() => void updateServiceWorker(true)}>
             Reload
           </button>
-          <button type="button" className="toast__action toast__action--muted" onClick={onLater}>
+          <button type="button" className="toast__action toast__action--muted" onClick={() => setNeedRefresh(false)}>
             Later
           </button>
         </div>
       )}
-    </div>
+    </ToastLayer>
   )
 }

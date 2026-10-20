@@ -17,6 +17,7 @@ import type { PaneId } from '../lib/types'
 import { useStore } from '../store/useStore'
 import { useUI } from '../store/useUI'
 import { Icon } from './Icon'
+import { InstallHint } from './InstallHint'
 import { PaneHeader } from './PaneHeader'
 import { TaskCard } from './TaskCard'
 
@@ -56,6 +57,7 @@ export function Pane({ pane }: { pane: PaneId }) {
   return (
     <section className={`pane pane--${pane}`} id={`pane-${pane}`} aria-labelledby={`pane-title-${pane}`} data-pane={pane}>
       <PaneHeader pane={pane} openCount={listing.open.length + listing.hiddenByFilter} doneCount={tasks.filter((t) => t.pane === pane && t.done).length} />
+      {pane === 'week' && <InstallHint />}
 
       {total > 0 && (
         <div className="toolbar">

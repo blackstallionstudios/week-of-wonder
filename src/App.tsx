@@ -5,7 +5,7 @@ import { Menu } from './components/Menu'
 import { NewIssueRitual } from './components/NewIssueRitual'
 import { QuickAdd } from './components/QuickAdd'
 import { TaskSheet } from './components/TaskSheet'
-import { Toasts, UpdatePrompt } from './components/Toasts'
+import { Toasts } from './components/Toasts'
 import { seedWelcome } from './lib/welcome'
 import { useStore } from './store/useStore'
 import { useUI } from './store/useUI'
@@ -71,6 +71,8 @@ export default function App() {
     const firstRun = s.lastIssueKey === null && s.tasks.length === 0
     s.checkRollover()
     if (firstRun) seedWelcome()
+    // Ask the browser not to evict our local-only data under storage pressure.
+    void navigator.storage?.persist?.().catch(() => {})
   }, [])
 
   return (
@@ -84,7 +86,6 @@ export default function App() {
       <BackIssues />
       <NewIssueRitual />
       <Toasts />
-      <UpdatePrompt />
     </div>
   )
 }

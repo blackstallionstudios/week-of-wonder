@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { inkVar, type InkId } from '../lib/inks'
 import type { PaneId } from '../lib/types'
 import { useStore } from '../store/useStore'
@@ -25,12 +25,6 @@ function QuickAddForm({ onDone }: { onDone(): void }) {
   const [ink, setInk] = useState<InkId | null>(null)
   const [added, setAdded] = useState<{ id: string; title: string; ink: InkId | null; pane: PaneId }[]>([])
   const input = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    // Wait a frame so iOS treats this as part of the opening gesture.
-    const f = requestAnimationFrame(() => input.current?.focus())
-    return () => cancelAnimationFrame(f)
-  }, [])
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -62,6 +56,7 @@ function QuickAddForm({ onDone }: { onDone(): void }) {
         <span className="quickadd__stub" aria-hidden="true" />
         <input
           ref={input}
+          data-autofocus
           className="quickadd__input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
